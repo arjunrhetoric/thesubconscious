@@ -1,59 +1,73 @@
 <div align="center">
 
-# 🧠 THE SUBCONSCIOUS
-### High-Performance Local-First Knowledge Architecture with Grounded Vector AI
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.3-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Google Gemini](https://img.shields.io/badge/Google_Gemini-3.5_Flash-8E75B2?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
-[![Qdrant Vector DB](https://img.shields.io/badge/Qdrant-768_Dim_Vectors-DC2626?style=for-the-badge&logo=qdrant&logoColor=white)](https://qdrant.tech/)
-[![Web Crypto API](https://img.shields.io/badge/Cryptography-AES--256--GCM-10B981?style=for-the-badge&logo=security&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
-[![MongoDB Atlas](https://img.shields.io/badge/Database-MongoDB_Atlas-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+
+# The Subconscious
+### ⚡ 0ms Local-First Architecture • Grounded Vector AI • Zero-Knowledge Confidentiality
+
+[![Next.js](https://img.shields.io/badge/Next.js-16.3-000000?style=flat-square&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Google Gemini](https://img.shields.io/badge/Gemini-3.5_Flash-8E75B2?style=flat-square&logo=google&logoColor=white)](https://ai.google.dev/)
+[![Qdrant](https://img.shields.io/badge/Qdrant-Cloud_RAG-DC2626?style=flat-square&logo=qdrant&logoColor=white)](https://qdrant.tech/)
+[![Cryptography](https://img.shields.io/badge/Web_Crypto-AES--256--GCM-10B981?style=flat-square&logo=security&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 
 <p align="center">
-  <b>The Subconscious</b> is a category-defining personal knowledge engine designed around two non-negotiable principles: <b>zero perceptible latency (0ms reads)</b> and <b>zero-knowledge user confidentiality</b>. By coupling an in-browser local storage engine with background vector indexing and real-time generative RAG synthesis, The Subconscious bridges the gap between ultra-private offline note tools and collaborative, AI-augmented workspaces.
+  <b>The Subconscious</b> is a high-speed personal knowledge workspace engineered around <b>0ms interaction latency</b> and <b>provable zero-knowledge security</b>. By coupling an in-browser IndexedDB storage engine with background vector indexing and real-time semantic synthesis, it delivers instant note retrieval and AI answers grounded strictly in your personal notes.
 </p>
-
-[Key Innovations](#-key-innovations) •
-[System Architecture](#-system-architecture) •
-[Security & Cryptography](#-security--cryptographic-guarantees) •
-[Technical Benchmarks](#-technical-benchmarks) •
-[API Reference](#-api-specification) •
-[Getting Started](#-local-development-setup) •
-[Production Deployment](#-production-deployment)
 
 ---
 
 </div>
 
-## 🌟 Key Innovations
+## 📑 Table of Contents
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                                   CORE CAPABILITIES                                    │
-├─────────────────────────┬───────────────────────────────┬──────────────────────────────┤
-│ ⚡ 0ms Local-First Engine │ 🔒 Zero-Knowledge Device Disk │ 🧠 Verifiable Semantic RAG   │
-│   • IndexedDB object persistence│   • Client-side AES-256-GCM   │   • Qdrant 768-dim embeddings│
-│   • Instant client rehydration │   • PBKDF2 (600k iterations)  │   • SSE real-time streaming  │
-│   • Offline background syncing  │   • Zero admin data visibility│   • Exact source citations   │
-└─────────────────────────┴───────────────────────────────┴──────────────────────────────┘
-```
+- [Overview](#-overview)
+- [Key Features](#-key-features)
+- [System Architecture](#-system-architecture)
+- [Security & Zero-Knowledge Spec](#-security--zero-knowledge-spec)
+- [Performance & Benchmarks](#-performance--benchmarks)
+- [API Reference](#-api-reference)
+- [Local Development Setup](#-local-development-setup)
+- [Environment Variables](#-environment-variables)
+- [Deployment Guide](#-deployment-guide)
+- [License](#-license)
 
-### 1. ⚡ 0ms Local-First Reactive Engine
-Traditional cloud note platforms subject every user navigation, folder expansion, and image render to remote network round-trips (100–350ms latency). The Subconscious writes and reads directly to the client's browser disk via **IndexedDB** (`idb` v1), providing **true 0ms local interaction latency**. All changes are queued in an offline-resilient background sync pipeline with exponential backoff retry.
+---
 
-### 2. 🔐 Zero-Knowledge Client Confidentiality
-Private notes and attached media files are never exposed in plaintext to cloud storage. Images undergo client-side HTML Canvas compression (converting to lightweight WebP ≤1MB) and are stored in client IndexedDB binary blobs. When synced, payloads are protected via **AES-256-GCM symmetric encryption** with keys derived locally through **PBKDF2 (600,000 SHA-256 hashing rounds)**. Platform administrators have mathematical zero-visibility into private user files.
+## 💡 Overview
 
-### 3. 🧠 Grounded Semantic Vector AI (RAG)
-Integrated with **Google Gemini 3.5 Flash** and a multi-tenant **Qdrant Cloud vector cluster**, every note is automatically chunked into 500-token semantic windows, embedded into 768-dimensional vector space, and indexed with user-scoped cryptographic payload filters (`userId === req.userId`). Queries stream via **Server-Sent Events (SSE)** with a Claude-style undulating thinking wave and cite precise note sources with 1-click navigation.
+Traditional cloud-based note platforms route every page navigation, keystroke, and image render through remote network round-trips (typically incurring 100–350ms of network overhead).
 
-### 4. 🗂️ Infinite Hierarchical Knowledge Tree
-Organize information with unlimited recursive depth. The Subconscious implements single-query O(1) recursive tree reconstruction, breadcrumb trail resolution, and automatic cascading deletion that purges associated documents, subpages, and vector embeddings in a single atomic transaction.
+**The Subconscious changes this model:**
+1. **Local-First Reads & Writes**: Every document and image is stored locally on your device in **IndexedDB**. Opening notes is instantaneous (**0ms**).
+2. **Deterministic Vector RAG**: Notes are chunked into 500-token semantic segments, converted into 768-dimensional vectors via Google Gemini, and indexed into Qdrant Cloud for natural-language Q&A.
+3. **Zero Admin Data Exposure**: Private media and notes remain encrypted or local-only. Platform administrators have mathematical zero-visibility into private user files.
 
-### 5. 🌐 Sandboxed 1-Click Public Web Publishing
-Share individual documents effortlessly with vanity nanoid URLs (`thesubconscious.app/p/:slug`). When made public, local image references are dynamically synced to high-speed CDN distribution while the author's private root knowledge graph and vector indices remain completely sequestered.
+---
+
+## 🚀 Key Features
+
+### ⚡ 0ms Reactive Engine
+- **Instant Workspace Hydration**: The full hierarchical note tree mounts immediately from browser storage with zero loading spinners.
+- **Offline Resilient Sync**: Work seamlessly without an internet connection. Changes queue locally and automatically synchronize via exponential backoff once reconnected.
+- **Client-Side Image Processing**: HTML Canvas compression converts image uploads to lightweight WebP (≤1MB) directly in the browser.
+
+### 🧠 Grounded Semantic Vector AI
+- **Undulating Thinking Animation**: Real-time visual feedback while searching vector space and matching semantic note chunks.
+- **Verifiable Citations**: Every generated response includes direct clickable source chips that jump straight to the source note.
+- **Strict Tenant Boundary**: Multi-tenant vector retrieval ensures queries are strictly isolated to the authenticated user's workspace.
+
+### 📝 Keyboard-First Block Editor
+- **Rich Slash Commands**: Quick triggers for `/heading`, `/todo`, `/code`, `/table`, `/image`, and bullet lists.
+- **Syntax Highlighting**: Real-time language highlighting for TypeScript, JavaScript, Python, Rust, Go, SQL, and HTML.
+- **Infinite Nesting**: Nest subpages inside subpages to arbitrary depth with automatic breadcrumb generation and atomic cascade deletion.
+
+### 🌐 Decoupled Public Sharing
+- **1-Click Vanity Links**: Generate isolated read-only URLs for individual notes without exposing your root knowledge graph.
+- **Dynamic CDN Asset Publishing**: Shared images are automatically synced to high-speed CDN delivery on publish.
 
 ---
 
@@ -61,120 +75,110 @@ Share individual documents effortlessly with vanity nanoid URLs (`thesubconsciou
 
 ```mermaid
 flowchart TB
-    subgraph Client ["Client Browser Runtime (Next.js 16 + React 19)"]
-        UI["Tiptap Block Editor & Knowledge Tree"]
+    subgraph Browser ["Client Runtime (Next.js 16 + React 19)"]
+        Editor["Tiptap Block Editor"]
+        Tree["Hierarchical Tree Nav"]
         IDB[("IndexedDB Local Store\n• pages\n• images\n• sync_queue")]
-        Crypto["Web Crypto Engine\n• AES-256-GCM\n• PBKDF2 (600k)"]
-        Canvas["Canvas WebP Compressor\n(≤1MB Optimization)"]
-        SyncEngine["Background Sync Engine\n(5s Polling + Backoff)"]
+        CryptoEngine["Web Crypto Engine\n• AES-256-GCM\n• PBKDF2 (600k)"]
+        SyncWorker["Sync Engine\n(5s Polling + Backoff)"]
 
-        UI <-->|0ms Instant Read/Write| IDB
-        UI -->|Drop Image| Canvas --> IDB
-        Crypto <--> IDB
-        IDB --> SyncEngine
+        Editor <-->|0ms Instant Reads| IDB
+        Tree <-->|0ms Instant Nav| IDB
+        CryptoEngine <--> IDB
+        IDB --> SyncWorker
     end
 
-    subgraph Backend ["Node.js Express 5 Enterprise API"]
-        Router["REST & SSE Router"]
-        AuthMiddleware["JWT & OAuth Middleware\n(Account Linking)"]
-        RateLimiter["Rate Limiting\n(15 uploads/hr per user)"]
-        Chunker["Semantic Chunking\n(500-token windows)"]
-        GeminiService["Google Gemini 3.5\nEmbedding & Inference"]
+    subgraph Backend ["Express 5 TypeScript API"]
+        Router["REST & SSE Streaming Router"]
+        Auth["Passport JWT & OAuth Middleware\n(Google & GitHub Account Linking)"]
+        RateLimit["Rate Limiting\n(15 uploads/hr per user)"]
+        EmbedService["Gemini 3.5\nEmbedding Engine"]
     end
 
-    subgraph Storage ["Cloud Infrastructure Layer"]
-        Mongo[("MongoDB Atlas\nDocument DB")]
-        Qdrant[("Qdrant Cloud\n768-Dim Vector DB")]
+    subgraph Cloud ["Infrastructure Layer"]
+        Mongo[("MongoDB Atlas\nDocument Database")]
+        QdrantCluster[("Qdrant Cloud\n768-Dim Vector Space")]
         CDN[("Cloudinary CDN\nPublic Assets")]
     end
 
-    SyncEngine -->|HTTPS Batch Sync| Router
-    Router --> AuthMiddleware --> RateLimiter
-    RateLimiter --> Mongo
-    RateLimiter --> Chunker --> GeminiService --> Qdrant
+    SyncWorker -->|HTTPS Batch Sync| Router
+    Router --> Auth --> RateLimit
+    RateLimit --> Mongo
+    RateLimit --> EmbedService --> QdrantCluster
     Router -.->|Direct Signed Upload| CDN
 ```
 
 ---
 
-## 🔒 Security & Cryptographic Guarantees
+## 🔒 Security & Zero-Knowledge Spec
 
-The Subconscious adheres to military-grade web security standards designed to guarantee data ownership:
-
-| Layer | Standard | Architectural Implementation |
+| Security Pillar | Standard | Technical Guarantee |
 |:---|:---|:---|
-| **Key Derivation** | `PBKDF2-HMAC-SHA256` | 600,000 iterations with 16-byte cryptographically secure pseudorandom salts (`crypto.getRandomValues`). |
-| **Symmetric Encryption** | `AES-256-GCM` | 256-bit keys with 96-bit unique nonces per payload; authenticated encryption prevents bit-flipping attacks. |
-| **Vector Isolation** | Multi-Tenant Payload Filtering | Qdrant vector retrieval enforces strict `Must: [{ key: "userId", match: { value: req.userId } }]` constraints. |
-| **AI Data Boundary** | Zero-Training Guarantees | Inference executed via enterprise APIs with zero data retention; user notes are never fed into foundational models. |
-| **Data Erasure** | Atomic Cascade Purge | Deleting a page recursively purges all descendants, IndexedDB local cache entries, MongoDB documents, and Qdrant vector points. |
-| **Transport Security** | TLS 1.3 Strict HTTPS | Enforced HSTS headers, encrypted cookies, and CORS whitelisting on all external endpoints. |
+| **Key Derivation** | `PBKDF2-HMAC-SHA256` | 600,000 iterations with 16-byte cryptographically secure pseudorandom salt (`crypto.getRandomValues`). |
+| **Symmetric Cipher** | `AES-256-GCM` | 256-bit keys with 96-bit unique IVs per payload to prevent bit-flipping attacks. |
+| **Vector Isolation** | User-Scoped Payload Filter | Qdrant vector retrieval enforces strict `Must: [{ key: "userId", match: { value: req.userId } }]`. |
+| **AI Data Privacy** | Enterprise API Policy | Zero data retention: user notes are **never** used to train foundational AI models. |
+| **Cascade Erasure** | Atomic Purge | Deleting a page permanently deletes all descendants, IndexedDB local cache, MongoDB records, and Qdrant vector points. |
+| **Transport Layer** | Strict TLS 1.3 | Enforced HSTS headers, secure cookies, and CORS whitelisting on all endpoints. |
 
 ---
 
-## 📊 Technical Benchmarks
+## 📊 Performance & Benchmarks
 
-| Metric | The Subconscious | Traditional Cloud SaaS | Local-Only Tools |
+| Metric | The Subconscious | Traditional Cloud Workspace | Offline-Only Note App |
 |:---|:---|:---|:---|
-| **Note Switching Latency** | **0 ms** *(Local Cache)* | 150–350 ms *(Cloud fetch)* | 0 ms *(Local disk)* |
-| **Offline Functionality** | **Full write + Auto-sync** | Read-only or blocked | Offline only (no sync) |
-| **Private Image Storage** | **User Disk ($0 cloud cost)** | Cloud S3 bucket | Local file system |
-| **Admin Asset Visibility** | **Zero (Encrypted/Local)** | Plaintext visible to admin | Zero |
-| **Semantic Vector RAG** | **Sub-second Gemini 3.5** | Centralized / Non-verifiable | Requires manual DIY plugins |
-| **Public Web Sharing** | **1-Click High-Speed CDN** | Supported | Paid extension add-on |
-| **Client Memory Footprint** | **~45 MB** *(Optimized WebP)* | 180–350 MB *(DOM heavy)* | 80–120 MB |
+| **Page Switch Latency** | **0 ms** *(Local Cache)* | 150–350 ms *(Network fetch)* | 0 ms *(Local disk)* |
+| **Offline Creation** | **Full write + Auto-sync** | Blocked or Read-only | Offline only (no cloud sync) |
+| **Private Media Hosting** | **Local Disk ($0 cloud cost)**| Cloud Object Store | Local storage |
+| **Admin Asset Visibility** | **Zero (Encrypted / Local)** | Plaintext visible to admin | Zero |
+| **Semantic AI Retrieval** | **Sub-second Gemini 3.5 RAG** | Non-verifiable / Centralized | Requires complex DIY setup |
+| **Public Note Sharing** | **1-Click High-Speed CDN** | Supported | Paid add-on |
+| **Client Memory Usage** | **~45 MB** *(WebP optimized)* | 180–350 MB *(DOM heavy)* | 80–120 MB |
 
 ---
 
-## 🛠️ Technology Stack
+## 📡 API Reference
 
-### Frontend Application
-- **Framework**: [Next.js 16.3](https://nextjs.org/) (Turbopack, React 19, Server Actions, App Router)
-- **Editor Core**: [Tiptap](https://tiptap.dev/) Block Editor (Custom Slash Commands, Task Lists, Syntax Highlighting, Inline Media)
-- **State Management**: [Zustand](https://github.com/pmndrs/zustand) with custom local-first middleware
-- **Local Persistence**: Browser [IndexedDB API](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) (`idb` lightweight driver)
-- **Animation & Styling**: [Tailwind CSS](https://tailwindcss.com/), [Framer Motion](https://www.framer-motion.com/), [Lucide React](https://lucide.dev/)
+All backend API routes are prefixed with `/api/v1`.
 
-### Backend Infrastructure
-- **API Runtime**: [Node.js](https://nodejs.org/) with [Express 5](https://expressjs.com/) (TypeScript)
-- **Primary Database**: [MongoDB Atlas](https://www.mongodb.com/atlas) with [Mongoose 8](https://mongoosejs.com/)
-- **Vector Database**: [Qdrant Cloud](https://qdrant.tech/) (768-dimensional cosine metric collections)
-- **AI & Embeddings**: [Google Gemini 3.5 Flash](https://ai.google.dev/) (`@google/generative-ai`)
-- **Authentication**: [Passport.js](https://www.passportjs.org/) (JWT, Google OAuth 2.0, GitHub OAuth with Account Linking)
-- **CDN & Media**: [Cloudinary](https://cloudinary.com/) (HMAC-SHA1 direct signed uploads)
+<details>
+<summary><b>🔐 Authentication Endpoints</b></summary>
 
----
-
-## 📡 API Specification
-
-All backend endpoints are prefixed with `/api/v1`.
-
-### Authentication
-| Method | Endpoint | Description | Auth Required |
+| Method | Route | Description | Auth Required |
 |:---|:---|:---|:---|
-| `POST` | `/auth/signup` | Register new user with email and hashed password | No |
-| `POST` | `/auth/signin` | Authenticate local user and issue signed JWT token | No |
-| `GET` | `/auth/google` | Trigger Google OAuth 2.0 authentication flow | No |
-| `GET` | `/auth/github` | Trigger GitHub OAuth authentication flow | No |
-| `GET` | `/auth/me` | Fetch active user session profile from JWT | **Yes** |
+| `POST` | `/auth/signup` | Register a new account with email & password | No |
+| `POST` | `/auth/signin` | Authenticate user and receive JWT bearer token | No |
+| `GET` | `/auth/google` | Initiate Google OAuth 2.0 authentication | No |
+| `GET` | `/auth/github` | Initiate GitHub OAuth authentication | No |
+| `GET` | `/auth/me` | Fetch active user session profile | **Yes** |
 
-### Workspace & Pages
-| Method | Endpoint | Description | Auth Required |
-|:---|:---|:---|:---|
-| `GET` | `/pages/tree` | Fetch entire recursive page hierarchy tree | **Yes** |
-| `POST` | `/pages` | Create new note document (root or nested subpage) | **Yes** |
-| `GET` | `/pages/:id` | Fetch full note document and computed breadcrumb path | **Yes** |
-| `PATCH` | `/pages/:id` | Update title, content, parentId, or ordering index | **Yes** |
-| `DELETE`| `/pages/:id` | Atomic cascade deletion across Mongo and Qdrant | **Yes** |
-| `PATCH` | `/pages/:id/share` | Toggle public web access and generate vanity slug | **Yes** |
-| `PATCH` | `/pages/:id/tags` | Accept or dismiss automated AI suggested tags | **Yes** |
+</details>
 
-### AI RAG & Vector Retrieval
-| Method | Endpoint | Description | Auth Required |
+<details>
+<summary><b>📄 Workspace & Page Endpoints</b></summary>
+
+| Method | Route | Description | Auth Required |
 |:---|:---|:---|:---|
-| `POST` | `/chat` | SSE streaming query grounded in user vector space | **Yes** |
-| `GET` | `/upload/sign` | Generate HMAC-SHA1 signature for Cloudinary CDN upload | **Yes** |
-| `GET` | `/public/pages/:slug` | Retrieve public read-only note document by vanity slug | No |
+| `GET` | `/pages/tree` | Fetch complete recursive page hierarchy | **Yes** |
+| `POST` | `/pages` | Create a new note document (root or subpage) | **Yes** |
+| `GET` | `/pages/:id` | Fetch note content and breadcrumb trail | **Yes** |
+| `PATCH` | `/pages/:id` | Update note title, content, or parent relationship | **Yes** |
+| `DELETE` | `/pages/:id` | Atomic cascade deletion of page & descendants | **Yes** |
+| `PATCH` | `/pages/:id/share` | Toggle public link access & generate vanity slug | **Yes** |
+| `PATCH` | `/pages/:id/tags` | Accept or dismiss AI suggested tags | **Yes** |
+
+</details>
+
+<details>
+<summary><b>🤖 AI RAG & Public Endpoints</b></summary>
+
+| Method | Route | Description | Auth Required |
+|:---|:---|:---|:---|
+| `POST` | `/chat` | SSE real-time streaming answer with note citations | **Yes** |
+| `GET` | `/upload/sign` | Get HMAC-SHA1 signed parameters for CDN uploads | **Yes** |
+| `GET` | `/public/pages/:slug` | Read-only public note content by vanity slug | No |
+
+</details>
 
 ---
 
@@ -182,35 +186,51 @@ All backend endpoints are prefixed with `/api/v1`.
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/arjunrhetoric/thesubconscious.git
+git clone https://github.com/<your-username>/thesubconscious.git
 cd thesubconscious
 ```
 
-### 2. Configure Backend
+### 2. Backend Setup
 ```bash
 cd subconcious-backend
 npm install
+npm run dev
+# Server listening at http://localhost:3000
 ```
 
-Create `subconcious-backend/.env`:
+### 3. Frontend Setup
+```bash
+cd ../subconcious-frontend
+npm install
+npm run dev
+# App running at http://localhost:3001
+```
+
+---
+
+## 🔑 Environment Variables
+
+### Backend (`subconcious-backend/.env`)
 ```env
-# Server Config
+# Server
 PORT=3000
 NODE_ENV=development
 CLIENT_URL=http://localhost:3001
 
-# Security & Auth
-JWT_SECRET=replace_with_a_secure_random_string_32_chars_min
+# Security
+JWT_SECRET=your_jwt_secret_min_32_characters
 
 # Database
-MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/thesubconscious
+MONGODB_URI=your_mongodb_atlas_connection_string
 
-# AI & Vector Engine
-GEMINI_API_KEY=your_gemini_api_key_from_google_ai_studio
-QDRANT_URL=https://your-cluster-id.qdrant.tech:6333
-QDRANT_API_KEY=your_qdrant_cloud_api_key
+# Vector Database (Qdrant Cloud)
+QDRANT_URL=https://<your-cluster-id>.qdrant.tech:6333
+QDRANT_API_KEY=your_qdrant_api_key
 
-# OAuth Credentials
+# AI (Google AI Studio)
+GEMINI_API_KEY=your_google_gemini_api_key
+
+# OAuth Providers
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 GOOGLE_CALLBACK_URL=http://localhost:3000/api/v1/auth/google/callback
@@ -219,63 +239,43 @@ GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
 GITHUB_CALLBACK_URL=http://localhost:3000/api/v1/auth/github/callback
 
-# Cloudinary (Optional for public image hosting)
-CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+# Cloudinary (Optional - for public shared links)
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
 
-Start backend development server:
-```bash
-npm run dev
-# [API] 🧠 The Subconscious API listening at http://localhost:3000
-```
-
-### 3. Configure Frontend
-```bash
-cd ../subconcious-frontend
-npm install
-```
-
-Create `subconcious-frontend/.env.local`:
+### Frontend (`subconcious-frontend/.env.local`)
 ```env
 NEXT_PUBLIC_BACKEND_URL=http://localhost:3000
 NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
 ```
 
-Start frontend Next.js development server:
-```bash
-npm run dev
-# [Client] ▲ Next.js App Router ready on http://localhost:3001
-```
-
 ---
 
-## 🚀 Production Deployment
+## 🚀 Deployment Guide
 
-### Backend on [Render](https://render.com)
-1. Link your GitHub repository.
-2. Select **Web Service** $\rightarrow$ set Root Directory to `subconcious-backend`.
+### Deploying Backend (e.g. Render / Railway / Fly.io)
+1. Connect your repository to your hosting provider.
+2. Set **Root Directory** to `subconcious-backend`.
 3. Set **Build Command**: `npm install && npm run build`.
 4. Set **Start Command**: `npm start`.
-5. Populate environment variables from your `.env` configuration.
+5. Add all required backend environment variables.
 
-### Frontend on [Vercel](https://vercel.com)
+### Deploying Frontend (e.g. Vercel)
 1. Import repository into Vercel.
-2. Set Root Directory to `subconcious-frontend`.
+2. Set **Root Directory** to `subconcious-frontend`.
 3. Framework Preset: `Next.js`.
 4. Configure Environment Variables:
-   - `NEXT_PUBLIC_BACKEND_URL`: `https://your-backend.onrender.com`
-   - `NEXT_PUBLIC_API_URL`: `https://your-backend.onrender.com/api/v1`
+   - `NEXT_PUBLIC_BACKEND_URL`: URL of your deployed backend
+   - `NEXT_PUBLIC_API_URL`: `<BACKEND_URL>/api/v1`
 
 ---
 
-## 📄 License & Contributing
+## 📄 License
 
-Distributed under the **MIT License**. See `LICENSE` for more information.
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/arjunrhetoric/thesubconscious/issues).
-
-<p align="center">
-  Built with obsession for speed, design, and privacy.
-</p>
+<div align="center">
+  <sub>Built with focus on speed, design, and privacy.</sub>
+</div>
