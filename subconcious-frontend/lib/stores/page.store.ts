@@ -236,19 +236,19 @@ export const usePageStore = create<PageState>((set, get) => ({
 
   selectPage: async (id: string) => {
     if (!id) return
-    set({ activePageId: id, isLoadingPage: true })
+    const prevActiveId = get().activePageId
+    if (prevActiveId === id && get().activePage) return
 
+    // 1. Try to load from IndexedDB immediately (0ms instant paint)
     try {
-      // 1. Try to load from IndexedDB first (0ms)
       const localPage = await localDb.getPage(id)
       if (localPage) {
         const allPages = await localDb.getAllPages()
         const breadcrumb = buildBreadcrumb(allPages, id)
-
-        // Resolve local image references to blob URLs
         const resolvedContent = await resolveLocalImages(localPage.content)
 
         set({
+          activePageId: id,
           activePage: {
             _id: localPage._id,
             title: localPage.title,
@@ -265,35 +265,38 @@ export const usePageStore = create<PageState>((set, get) => ({
           breadcrumb,
           isLoadingPage: false,
         })
+      } else {
+        // Only show loader if we genuinely have no local copy
+        set({ activePageId: id, isLoadingPage: true })
       }
 
-      // 2. Background fetch from API to get latest version
-      try {
-        const data = await apiRequest(`/pages/${id}`)
-        const serverPage = data.page
+      // 2. Non-blocking background sync with API
+      apiRequest(`/pages/${id}`)
+        .then(async (data) => {
+          const serverPage = data.page
+          if (!serverPage) return
 
-        // Cache in IndexedDB
-        await localDb.savePage(pageToLocalPage(serverPage))
+          // Cache in IndexedDB
+          await localDb.savePage(pageToLocalPage(serverPage))
 
-        // Resolve local images in server content too
-        const resolvedContent = await resolveLocalImages(serverPage.content)
+          // Resolve local images in server content too
+          const resolvedContent = await resolveLocalImages(serverPage.content)
 
-        // Update UI if the page is still active
-        const { activePageId } = get()
-        if (activePageId === id) {
-          set({
-            activePage: { ...serverPage, content: resolvedContent },
-            breadcrumb: data.breadcrumb || [],
-            isLoadingPage: false,
-          })
-        }
-      } catch (apiError) {
-        // API failed (offline) — local data is already rendered, so just log
-        if (!localPage) {
-          console.error('[PageStore] No local cache and API failed:', apiError)
-          set({ isLoadingPage: false })
-        }
-      }
+          // Update UI if the user is still on this page
+          if (get().activePageId === id) {
+            set({
+              activePage: { ...serverPage, content: resolvedContent },
+              breadcrumb: data.breadcrumb || [],
+              isLoadingPage: false,
+            })
+          }
+        })
+        .catch((apiError) => {
+          if (!localPage) {
+            console.error('[PageStore] No local cache and API failed:', apiError)
+            set({ isLoadingPage: false })
+          }
+        })
     } catch (error) {
       console.error('[PageStore] selectPage error:', error)
       set({ isLoadingPage: false })

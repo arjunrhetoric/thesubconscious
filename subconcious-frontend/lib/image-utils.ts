@@ -237,9 +237,9 @@ export async function publishLocalImages(
   const backendUrl =
     process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'
 
-  const authData =
-    typeof window !== 'undefined' ? localStorage.getItem('auth-storage') : null
-  const token = authData ? JSON.parse(authData)?.state?.token : null
+  // Correct token key from auth store
+  const token =
+    typeof window !== 'undefined' ? localStorage.getItem('sb_token') : null
 
   async function traverse(node: any) {
     if (!node) return
@@ -262,53 +262,59 @@ export async function publishLocalImages(
       if (localId) {
         const imageRecord = await getImage(localId)
         if (imageRecord && imageRecord.blob) {
-          try {
-            // 1. Encrypt image bytes with AES-256-GCM
-            const arrayBuffer = await imageRecord.blob.arrayBuffer()
-            const { encryptedBlob, keyHex } = await encryptImageBuffer(arrayBuffer)
+          let uploaded = false
 
-            // 2. Obtain signature
-            const signRes = await fetch(`${backendUrl}/api/v1/upload/sign`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            })
-            const signData = await signRes.json()
+          if (token) {
+            try {
+              // 1. Obtain signature from backend
+              const signRes = await fetch(`${backendUrl}/api/v1/upload/sign`, {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                },
+              })
+              const signData = await signRes.json()
 
-            if (signData.success) {
-              const formData = new FormData()
-              formData.append('file', encryptedBlob, 'encrypted_asset.bin')
-              formData.append('api_key', signData.apiKey)
-              formData.append('timestamp', signData.timestamp.toString())
-              formData.append('signature', signData.signature)
-              formData.append('folder', signData.folder)
+              if (signData.success) {
+                // 2. Encrypt image bytes with AES-256-GCM
+                const arrayBuffer = await imageRecord.blob.arrayBuffer()
+                const { encryptedBlob, keyHex } = await encryptImageBuffer(arrayBuffer)
 
-              const uploadRes = await fetch(
-                `https://api.cloudinary.com/v1_1/${signData.cloudName}/raw/upload`,
-                {
-                  method: 'POST',
-                  body: formData,
+                const formData = new FormData()
+                formData.append('file', encryptedBlob, 'encrypted_asset.bin')
+                formData.append('api_key', signData.apiKey)
+                formData.append('timestamp', signData.timestamp.toString())
+                formData.append('signature', signData.signature)
+                formData.append('folder', signData.folder)
+
+                const uploadRes = await fetch(
+                  `https://api.cloudinary.com/v1_1/${signData.cloudName}/auto/upload`,
+                  {
+                    method: 'POST',
+                    body: formData,
+                  }
+                )
+
+                const uploadJson = await uploadRes.json()
+                if (uploadJson.secure_url) {
+                  // Attach #encKey hash to secure url for client-side decryption
+                  node.attrs.src = `${uploadJson.secure_url}#encKey=${keyHex}`
+                  uploaded = true
                 }
-              )
-
-              const uploadJson = await uploadRes.json()
-              if (uploadJson.secure_url) {
-                // Attach #encKey hash to secure url for client-side decryption
-                node.attrs.src = `${uploadJson.secure_url}#encKey=${keyHex}`
-                return
               }
+            } catch (err) {
+              console.warn('[publishLocalImages] Cloudinary upload failed, falling back to base64:', err)
             }
-          } catch (err) {
-            console.error('Error encrypting and uploading image to CDN:', err)
           }
 
-          // Fallback: Compressed inline Base64 data URL
-          const reader = new FileReader()
-          const base64 = await new Promise<string>((res) => {
-            reader.onloadend = () => res(reader.result as string)
-            reader.readAsDataURL(imageRecord.blob)
-          })
-          node.attrs.src = base64
+          // Fallback: Inline base64 if Cloudinary is not used or fails
+          if (!uploaded) {
+            const reader = new FileReader()
+            const base64 = await new Promise<string>((res) => {
+              reader.onloadend = () => res(reader.result as string)
+              reader.readAsDataURL(imageRecord.blob)
+            })
+            node.attrs.src = base64
+          }
         }
       }
     }

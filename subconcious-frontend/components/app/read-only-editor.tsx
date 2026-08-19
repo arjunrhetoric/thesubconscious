@@ -79,8 +79,15 @@ export function ReadOnlyEditor({ content }: { content: any }) {
         },
       },
     },
-    [decryptedContent]
+    []
   )
+
+  // Update editor content when decryptedContent is processed
+  useEffect(() => {
+    if (editor && decryptedContent) {
+      editor.commands.setContent(decryptedContent)
+    }
+  }, [editor, decryptedContent])
 
   if (!editor) return null
 

@@ -324,7 +324,7 @@ export function Editor({ onShare }: { onShare: () => void }) {
     }
   }
 
-  if (isLoadingPage) {
+  if (isLoadingPage && !activePage) {
     return (
       <div className="flex h-64 items-center justify-center">
         <div className="size-6 animate-spin rounded-full border-2 border-brand border-t-transparent" />
