@@ -27,9 +27,9 @@ type SyncListener = (state: SyncState) => void
 
 // ─── Sync Engine ────────────────────────────────────────────────────────
 
-const SYNC_INTERVAL_MS = 5_000 // Check every 5 seconds
-const MAX_RETRY_DELAY_MS = 30_000 // Max 30s between retries
-const MAX_RETRIES = 10
+const SYNC_INTERVAL_MS = 1_000 // Fast 1s responsive background sync
+const MAX_RETRY_DELAY_MS = 15_000
+const MAX_RETRIES = 5
 
 let syncTimer: ReturnType<typeof setInterval> | null = null
 let isSyncing = false
@@ -103,8 +103,8 @@ async function processQueue() {
   notify()
 
   try {
-    // Process one item at a time to maintain order
-    const entries = await localDb.popSyncQueue(1)
+    // Process up to 10 items in batch for high performance
+    const entries = await localDb.popSyncQueue(10)
 
     for (const entry of entries) {
       try {
@@ -119,11 +119,6 @@ async function processQueue() {
             ...entry,
             retryCount: entry.retryCount + 1,
           })
-        } else {
-          console.error(
-            '[SyncEngine] Entry exceeded max retries, dropping:',
-            entry
-          )
         }
       }
     }
