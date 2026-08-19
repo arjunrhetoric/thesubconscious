@@ -280,14 +280,15 @@ export async function publishLocalImages(
                 const { encryptedBlob, keyHex } = await encryptImageBuffer(arrayBuffer)
 
                 const formData = new FormData()
-                formData.append('file', encryptedBlob, 'encrypted_asset.bin')
+                // Cloudinary accepts .dat as raw binary encrypted stream
+                formData.append('file', encryptedBlob, 'encrypted_asset.dat')
                 formData.append('api_key', signData.apiKey)
                 formData.append('timestamp', signData.timestamp.toString())
                 formData.append('signature', signData.signature)
                 formData.append('folder', signData.folder)
 
                 const uploadRes = await fetch(
-                  `https://api.cloudinary.com/v1_1/${signData.cloudName}/auto/upload`,
+                  `https://api.cloudinary.com/v1_1/${signData.cloudName}/raw/upload`,
                   {
                     method: 'POST',
                     body: formData,

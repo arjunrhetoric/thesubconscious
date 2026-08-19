@@ -337,7 +337,13 @@ export const usePageStore = create<PageState>((set, get) => ({
     }
 
     // 1. Update IndexedDB immediately
-    const localPage = await localDb.getPage(id)
+    let localPage = await localDb.getPage(id)
+    if (!localPage) {
+      const active = get().activePage
+      if (active && active._id === id) {
+        localPage = pageToLocalPage(active)
+      }
+    }
     if (localPage) {
       await localDb.savePage({
         ...localPage,
@@ -383,7 +389,13 @@ export const usePageStore = create<PageState>((set, get) => ({
     const storageContent = unresolveLocalImages(content)
 
     // 1. Save to IndexedDB immediately (0ms perceived save)
-    const localPage = await localDb.getPage(id)
+    let localPage = await localDb.getPage(id)
+    if (!localPage) {
+      const active = get().activePage
+      if (active && active._id === id) {
+        localPage = pageToLocalPage(active)
+      }
+    }
     if (localPage) {
       await localDb.savePage({
         ...localPage,

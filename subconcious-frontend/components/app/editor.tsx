@@ -1,101 +1,88 @@
 'use client'
 
 import {
-  Bold,
   Check,
-  Code as CodeIcon,
+  ChevronRight,
   Copy,
   FileText,
   Heading1,
   Heading2,
   Heading3,
-  ImageIcon,
-  Italic,
-  Link2,
+  Image as ImageIcon,
   List,
   ListOrdered,
   ListTodo,
   Loader2,
   MoreHorizontal,
-  Pencil,
+  Plus,
   Quote,
   Share2,
   Table as TableIcon,
   Trash2,
-  Upload,
+  X,
 } from 'lucide-react'
-import { useEffect, useRef, useState, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useRouter } from 'next/navigation'
+import { useState, useRef, useEffect } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
+import Table from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableCell from '@tiptap/extension-table-cell'
+import TableHeader from '@tiptap/extension-table-header'
+import Image from '@tiptap/extension-image'
+import Placeholder from '@tiptap/extension-placeholder'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { all, createLowlight } from 'lowlight'
-import Image from '@tiptap/extension-image'
-import { Table } from '@tiptap/extension-table'
-import { TableRow } from '@tiptap/extension-table-row'
-import { TableCell } from '@tiptap/extension-table-cell'
-import { TableHeader } from '@tiptap/extension-table-header'
-import Placeholder from '@tiptap/extension-placeholder'
 import { usePageStore } from '@/lib/stores/page.store'
-import { apiRequest } from '@/lib/api'
-import { storeImageLocally, LOCAL_IMAGE_PREFIX } from '@/lib/image-utils'
 import { cn } from '@/lib/utils'
-import { TagRow } from './tag-row'
+import { storeImageLocally } from '@/lib/image-utils'
 
 const lowlight = createLowlight(all)
 
 function OverflowMenu({ onShare }: { onShare: () => void }) {
   const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  const { activePage, deletePage, createPage } = usePageStore()
+  const menuRef = useRef<HTMLDivElement>(null)
+  const { activePageId, deletePage, createPage, activePage } = usePageStore()
 
   useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false)
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
     }
-    document.addEventListener('mousedown', onClick)
-    return () => document.removeEventListener('mousedown', onClick)
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  if (!activePage) return null
-
   const handleDelete = async () => {
+    if (!activePageId) return
     setOpen(false)
-    if (confirm(`Delete "${activePage.title || 'Untitled'}" and all its subpages?`)) {
-      await deletePage(activePage._id)
+    if (confirm('Are you sure you want to delete this page and all its subpages?')) {
+      await deletePage(activePageId)
     }
   }
 
   const handleDuplicate = async () => {
+    if (!activePage) return
     setOpen(false)
-    try {
-      const newPageId = await createPage(activePage.parentId)
-      await apiRequest(`/pages/${newPageId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          title: `${activePage.title} (Copy)`,
-          content: activePage.content,
-        }),
-      })
-      usePageStore.getState().selectPage(newPageId)
-    } catch (e) {
-      console.error('Failed to duplicate page:', e)
-    }
+    const newId = await createPage(activePage.parentId)
+    usePageStore.getState().updateTitle(newId, `${activePage.title} (Copy)`)
+    usePageStore.getState().updateContent(newId, activePage.content)
   }
 
   return (
-    <div ref={ref} className="relative">
+    <div className="relative" ref={menuRef}>
       <button
         type="button"
-        aria-label="Page options"
-        aria-expanded={open}
+        aria-label="Page actions"
         onClick={() => setOpen((v) => !v)}
-        className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        className="inline-flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
       >
         <MoreHorizontal className="size-4" />
       </button>
+
       {open && (
         <div className="absolute right-0 z-30 mt-1 w-44 overflow-hidden rounded-lg border border-border bg-popover p-1 shadow-md duration-150 animate-in fade-in slide-in-from-top-1">
           <button
@@ -104,7 +91,7 @@ function OverflowMenu({ onShare }: { onShare: () => void }) {
               setOpen(false)
               onShare()
             }}
-            className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-accent"
+            className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-accent cursor-pointer"
           >
             <Share2 className="size-4" />
             Share
@@ -112,7 +99,7 @@ function OverflowMenu({ onShare }: { onShare: () => void }) {
           <button
             type="button"
             onClick={handleDuplicate}
-            className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-accent"
+            className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-foreground transition-colors hover:bg-accent cursor-pointer"
           >
             <Copy className="size-4" />
             Duplicate
@@ -120,7 +107,7 @@ function OverflowMenu({ onShare }: { onShare: () => void }) {
           <button
             type="button"
             onClick={handleDelete}
-            className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-destructive transition-colors hover:bg-accent"
+            className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-destructive transition-colors hover:bg-accent cursor-pointer"
           >
             <Trash2 className="size-4" />
             Delete
@@ -150,23 +137,34 @@ export function Editor({ onShare }: { onShare: () => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
+  // Keep references to active IDs and content to prevent stale React closure bugs
+  const activePageIdRef = useRef(activePageId)
+  useEffect(() => {
+    activePageIdRef.current = activePageId
+  }, [activePageId])
+
+  const activePageRef = useRef(activePage)
+  useEffect(() => {
+    activePageRef.current = activePage
+  }, [activePage])
+
   // Sync title when activePage changes
   useEffect(() => {
     if (activePage) {
       setTitle(activePage.title || 'Untitled')
     }
-  }, [activePage])
+  }, [activePage?._id, activePage?.title])
 
-  // Local-first image upload (stored in IndexedDB, never touches cloud for private notes)
+  // Local-first image upload (stored in IndexedDB, 0ms render)
   const handleImageUpload = async (file: File) => {
-    if (!file || !activePageId) return
+    const currentId = activePageIdRef.current
+    if (!file || !currentId) return
     setIsUploading(true)
     setUploadProgress(30)
 
     try {
       // 1. Compress and store locally in IndexedDB (0ms latency, $0 cost)
-      const { imageId, blobUrl } = await storeImageLocally(file, activePageId)
-
+      const { imageId, blobUrl } = await storeImageLocally(file, currentId)
       setUploadProgress(100)
 
       // 2. Insert image node into Tiptap with local blob URL
@@ -174,8 +172,12 @@ export function Editor({ onShare }: { onShare: () => void }) {
         editor
           .chain()
           .focus()
-          .setImage({ src: blobUrl, alt: file.name })
+          .setImage({ src: blobUrl, alt: file.name || 'image' })
           .run()
+
+        // Immediate save with new image
+        const json = editor.getJSON()
+        updateContent(currentId, json)
       }
     } catch (error) {
       console.error('Image upload error:', error)
@@ -191,7 +193,7 @@ export function Editor({ onShare }: { onShare: () => void }) {
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        codeBlock: false, // handoff to CodeBlockLowlight
+        codeBlock: false,
       }),
       TaskList,
       TaskItem.configure({
@@ -243,13 +245,14 @@ export function Editor({ onShare }: { onShare: () => void }) {
         setSlashMenuOpen(false)
       }
 
-      // Debounce saving (2 seconds)
-      if (activePageId) {
+      // Debounce saving (1.2 seconds) using latest activePageIdRef to avoid stale closures
+      const currentTargetId = activePageIdRef.current
+      if (currentTargetId) {
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
         saveTimeoutRef.current = setTimeout(() => {
           const json = editor.getJSON()
-          updateContent(activePageId, json)
-        }, 2000)
+          updateContent(currentTargetId, json)
+        }, 1200)
       }
     },
   })
@@ -257,23 +260,34 @@ export function Editor({ onShare }: { onShare: () => void }) {
   // Re-sync editor content when switching pages
   useEffect(() => {
     if (editor && activePage) {
-      const currentJSON = JSON.stringify(editor.getJSON())
+      // Clear any pending debounced save from the previous page so it doesn't overwrite
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current)
+        saveTimeoutRef.current = null
+      }
+
+      const currentDoc = editor.getJSON()
+      const currentJSON = JSON.stringify(currentDoc)
       const pageJSON = JSON.stringify(activePage.content)
+
       if (currentJSON !== pageJSON) {
+        // Set content without firing onUpdate to prevent false auto-save cycles
         editor.commands.setContent(
           activePage.content || {
             type: 'doc',
             content: [{ type: 'paragraph', content: [] }],
-          }
+          },
+          false
         )
       }
     }
-  }, [activePage?._id, editor])
+  }, [activePage?._id, activePage?.content, editor])
 
   const handleTitleChange = (newTitle: string) => {
     setTitle(newTitle)
-    if (activePageId) {
-      updateTitle(activePageId, newTitle)
+    const currentId = activePageIdRef.current
+    if (currentId) {
+      updateTitle(currentId, newTitle)
     }
   }
 
@@ -332,7 +346,7 @@ export function Editor({ onShare }: { onShare: () => void }) {
     )
   }
 
-  if (!activePage) {
+  if (!activePage && !isLoadingPage) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-2 text-center text-muted-foreground">
         <FileText className="size-8 opacity-40" />
@@ -342,26 +356,8 @@ export function Editor({ onShare }: { onShare: () => void }) {
   }
 
   return (
-    <motion.div
-      key={activePage._id}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="relative mx-auto flex w-full max-w-[760px] flex-col px-5 py-4 sm:px-8 sm:py-8"
-    >
-      {/* Hidden file input for image uploads */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => {
-          const file = e.target.files?.[0]
-          if (file) handleImageUpload(file)
-        }}
-      />
-
-      {/* Top row: breadcrumb + save indicator + actions */}
+    <div className="mx-auto max-w-[720px] px-4 py-6 sm:px-8 sm:py-10">
+      {/* Top action bar: breadcrumbs + share button */}
       <div className="flex items-center justify-between gap-2">
         <nav className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
           {breadcrumb.map((seg, i) => (
@@ -371,7 +367,7 @@ export function Editor({ onShare }: { onShare: () => void }) {
                 type="button"
                 onClick={() => selectPage(seg.id)}
                 className={cn(
-                  'truncate rounded px-1 py-0.5 transition-colors hover:bg-accent hover:text-foreground',
+                  'truncate rounded px-1 py-0.5 transition-colors hover:bg-accent hover:text-foreground cursor-pointer',
                   i === breadcrumb.length - 1 && 'text-foreground font-medium',
                 )}
               >
@@ -407,7 +403,7 @@ export function Editor({ onShare }: { onShare: () => void }) {
           <button
             type="button"
             onClick={onShare}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground cursor-pointer"
           >
             <Share2 className="size-4" />
             <span className="hidden sm:inline">Share</span>
@@ -435,7 +431,7 @@ export function Editor({ onShare }: { onShare: () => void }) {
         <div className="mt-4 flex items-center gap-3 rounded-lg border border-dashed border-border bg-muted/30 p-4">
           <Loader2 className="size-4 animate-spin text-brand" />
           <div className="flex-1">
-            <p className="text-xs font-medium">Uploading image directly to Cloudinary...</p>
+            <p className="text-xs font-medium">Processing &amp; saving image locally...</p>
             <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-secondary">
               <div
                 className="h-full bg-brand transition-all duration-300"
@@ -450,142 +446,232 @@ export function Editor({ onShare }: { onShare: () => void }) {
       <div className="relative mt-6 min-h-[350px]">
         <EditorContent editor={editor} />
 
-        {/* Slash Commands Dropdown Menu */}
+        {/* Slash Command Floating Popover Menu */}
         {slashMenuOpen && (
-          <div className="absolute top-10 left-0 z-30 w-64 overflow-hidden rounded-lg border border-border bg-popover p-1 shadow-md duration-150 animate-in fade-in slide-in-from-top-1">
-            <p className="border-b border-border px-3 py-1.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-              Insert Block
+          <div className="absolute top-12 left-0 z-40 w-64 overflow-hidden rounded-xl border border-border bg-popover p-1.5 shadow-2xl animate-in fade-in slide-in-from-top-2 duration-150">
+            <p className="px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Basic Blocks
             </p>
-            <div className="max-h-60 overflow-y-auto p-1 flex flex-col gap-0.5">
+            <div className="flex flex-col gap-0.5">
               <button
                 type="button"
                 onClick={() => applySlashCommand('h1')}
-                className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition-colors hover:bg-accent cursor-pointer"
               >
                 <Heading1 className="size-4 text-muted-foreground" />
-                <span>Heading 1</span>
+                <div className="text-left">
+                  <div className="font-medium">Heading 1</div>
+                  <div className="text-[10px] text-muted-foreground">Big section title</div>
+                </div>
               </button>
               <button
                 type="button"
                 onClick={() => applySlashCommand('h2')}
-                className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition-colors hover:bg-accent cursor-pointer"
               >
                 <Heading2 className="size-4 text-muted-foreground" />
-                <span>Heading 2</span>
+                <div className="text-left">
+                  <div className="font-medium">Heading 2</div>
+                  <div className="text-[10px] text-muted-foreground">Medium subsection</div>
+                </div>
               </button>
               <button
                 type="button"
                 onClick={() => applySlashCommand('h3')}
-                className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition-colors hover:bg-accent cursor-pointer"
               >
                 <Heading3 className="size-4 text-muted-foreground" />
-                <span>Heading 3</span>
+                <div className="text-left">
+                  <div className="font-medium">Heading 3</div>
+                  <div className="text-[10px] text-muted-foreground">Small heading</div>
+                </div>
               </button>
               <button
                 type="button"
                 onClick={() => applySlashCommand('todo')}
-                className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition-colors hover:bg-accent cursor-pointer"
               >
                 <ListTodo className="size-4 text-muted-foreground" />
-                <span>To-do List</span>
+                <div className="text-left">
+                  <div className="font-medium">To-do List</div>
+                  <div className="text-[10px] text-muted-foreground">Track tasks with a checkbox</div>
+                </div>
               </button>
               <button
                 type="button"
                 onClick={() => applySlashCommand('bullet')}
-                className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition-colors hover:bg-accent cursor-pointer"
               >
                 <List className="size-4 text-muted-foreground" />
-                <span>Bullet List</span>
+                <div className="text-left">
+                  <div className="font-medium">Bullet List</div>
+                  <div className="text-[10px] text-muted-foreground">Create a simple bulleted list</div>
+                </div>
               </button>
               <button
                 type="button"
                 onClick={() => applySlashCommand('number')}
-                className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition-colors hover:bg-accent cursor-pointer"
               >
                 <ListOrdered className="size-4 text-muted-foreground" />
-                <span>Numbered List</span>
+                <div className="text-left">
+                  <div className="font-medium">Numbered List</div>
+                  <div className="text-[10px] text-muted-foreground">Create a list with numbering</div>
+                </div>
               </button>
               <button
                 type="button"
                 onClick={() => applySlashCommand('code')}
-                className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition-colors hover:bg-accent cursor-pointer"
               >
-                <CodeIcon className="size-4 text-muted-foreground" />
-                <span>Code Block</span>
+                <FileText className="size-4 text-muted-foreground" />
+                <div className="text-left">
+                  <div className="font-medium">Code Block</div>
+                  <div className="text-[10px] text-muted-foreground">Syntax highlighted snippet</div>
+                </div>
               </button>
               <button
                 type="button"
                 onClick={() => applySlashCommand('quote')}
-                className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition-colors hover:bg-accent cursor-pointer"
               >
                 <Quote className="size-4 text-muted-foreground" />
-                <span>Quote</span>
+                <div className="text-left">
+                  <div className="font-medium">Quote</div>
+                  <div className="text-[10px] text-muted-foreground">Capture a quote</div>
+                </div>
               </button>
               <button
                 type="button"
                 onClick={() => applySlashCommand('table')}
-                className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition-colors hover:bg-accent cursor-pointer"
               >
                 <TableIcon className="size-4 text-muted-foreground" />
-                <span>Table</span>
+                <div className="text-left">
+                  <div className="font-medium">Table</div>
+                  <div className="text-[10px] text-muted-foreground">Add a simple data table</div>
+                </div>
               </button>
               <button
                 type="button"
                 onClick={() => applySlashCommand('image')}
-                className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+                className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-1.5 text-xs text-foreground transition-colors hover:bg-accent cursor-pointer"
               >
                 <ImageIcon className="size-4 text-muted-foreground" />
-                <span>Upload Image</span>
+                <div className="text-left">
+                  <div className="font-medium">Image</div>
+                  <div className="text-[10px] text-muted-foreground">Upload image (0ms local-first)</div>
+                </div>
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Floating Toolbar on mobile / quick formatting */}
-      {editor && (
-        <div className="sticky bottom-4 z-20 mx-auto mt-6 flex items-center gap-1 rounded-lg border border-border bg-popover/90 p-1 shadow-md backdrop-blur">
+      {/* Hidden file input for images */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          if (file) handleImageUpload(file)
+        }}
+        className="hidden"
+      />
+    </div>
+  )
+}
+
+function TagRow() {
+  const { activePage, activePageId, acceptTag, rejectTag } = usePageStore()
+  const [newTagName, setNewTagName] = useState('')
+  const [isAdding, setIsAdding] = useState(false)
+
+  if (!activePage) return null
+
+  const tags = activePage.tags || []
+  const acceptedTags = tags.filter((t) => t.status === 'accepted')
+  const suggestedTags = tags.filter((t) => t.status === 'suggested')
+
+  const handleAddCustomTag = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newTagName.trim() || !activePageId) return
+    const name = newTagName.trim().toLowerCase().replace(/\s+/g, '-')
+    setNewTagName('')
+    setIsAdding(false)
+    await acceptTag(activePageId, name)
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {/* Accepted tags */}
+      {acceptedTags.map((tag) => (
+        <span
+          key={tag.name}
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground"
+        >
+          <span>{tag.name}</span>
           <button
             type="button"
-            onClick={() => editor.chain().focus().toggleBold().run()}
-            className={cn(
-              'inline-flex size-8 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground',
-              editor.isActive('bold') && 'bg-accent text-foreground font-bold'
-            )}
+            onClick={() => activePageId && rejectTag(activePageId, tag.name)}
+            className="text-muted-foreground hover:text-foreground cursor-pointer"
           >
-            <Bold className="size-4" />
+            <X className="size-3" />
+          </button>
+        </span>
+      ))}
+
+      {/* AI Suggested Tags */}
+      {suggestedTags.map((tag) => (
+        <span
+          key={tag.name}
+          className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-300"
+        >
+          <span className="text-[10px] uppercase font-bold text-amber-400">AI</span>
+          <span>{tag.name}</span>
+          <button
+            type="button"
+            onClick={() => activePageId && acceptTag(activePageId, tag.name)}
+            className="hover:text-emerald-400 font-bold ml-1 cursor-pointer"
+            title="Accept tag"
+          >
+            ✓
           </button>
           <button
             type="button"
-            onClick={() => editor.chain().focus().toggleItalic().run()}
-            className={cn(
-              'inline-flex size-8 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground',
-              editor.isActive('italic') && 'bg-accent text-foreground italic'
-            )}
+            onClick={() => activePageId && rejectTag(activePageId, tag.name)}
+            className="hover:text-red-400 cursor-pointer"
+            title="Reject tag"
           >
-            <Italic className="size-4" />
+            <X className="size-3" />
           </button>
-          <button
-            type="button"
-            onClick={() => editor.chain().focus().toggleCode().run()}
-            className={cn(
-              'inline-flex size-8 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground',
-              editor.isActive('code') && 'bg-accent text-foreground'
-            )}
-          >
-            <CodeIcon className="size-4" />
-          </button>
-          <div className="h-4 w-px bg-border mx-0.5" />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            title="Upload image"
-            className="inline-flex size-8 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground"
-          >
-            <Upload className="size-4" />
-          </button>
-        </div>
+        </span>
+      ))}
+
+      {/* Add tag button / input */}
+      {isAdding ? (
+        <form onSubmit={handleAddCustomTag} className="inline-flex items-center">
+          <input
+            autoFocus
+            type="text"
+            value={newTagName}
+            onChange={(e) => setNewTagName(e.target.value)}
+            onBlur={() => setIsAdding(false)}
+            placeholder="tag-name"
+            className="h-6 w-24 rounded border border-border bg-background px-2 text-xs text-foreground outline-none focus:border-ring"
+          />
+        </form>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setIsAdding(true)}
+          className="inline-flex items-center gap-1 rounded-md border border-dashed border-border px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground cursor-pointer"
+        >
+          <Plus className="size-3" />
+          <span>Add tag</span>
+        </button>
       )}
-    </motion.div>
+    </div>
   )
 }
