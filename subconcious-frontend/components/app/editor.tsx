@@ -1,14 +1,17 @@
 'use client'
 
 import {
+  Bold,
   Check,
   ChevronRight,
+  Code,
   Copy,
   FileText,
   Heading1,
   Heading2,
   Heading3,
   Image as ImageIcon,
+  Italic,
   List,
   ListOrdered,
   ListTodo,
@@ -19,6 +22,7 @@ import {
   Share2,
   Table as TableIcon,
   Trash2,
+  Upload,
   X,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -567,6 +571,54 @@ export function Editor({ onShare }: { onShare: () => void }) {
           </div>
         )}
       </div>
+
+      {/* Floating Toolbar for Quick Formatting & Image Upload */}
+      {editor && (
+        <div className="sticky bottom-4 z-20 mx-auto mt-6 flex items-center justify-center gap-1 rounded-xl border border-border bg-popover/95 p-1 shadow-xl backdrop-blur-md w-fit">
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            className={cn(
+              'inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer',
+              editor.isActive('bold') && 'bg-accent text-foreground font-bold'
+            )}
+            title="Bold"
+          >
+            <Bold className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            className={cn(
+              'inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer',
+              editor.isActive('italic') && 'bg-accent text-foreground italic'
+            )}
+            title="Italic"
+          >
+            <Italic className="size-4" />
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleCode().run()}
+            className={cn(
+              'inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer',
+              editor.isActive('code') && 'bg-accent text-foreground'
+            )}
+            title="Code"
+          >
+            <Code className="size-4" />
+          </button>
+          <div className="h-4 w-px bg-border mx-0.5" />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            title="Upload Image"
+            className="inline-flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer"
+          >
+            <Upload className="size-4" />
+          </button>
+        </div>
+      )}
 
       {/* Hidden file input for images */}
       <input
